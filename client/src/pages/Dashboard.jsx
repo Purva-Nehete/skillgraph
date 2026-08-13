@@ -36,6 +36,7 @@ function Dashboard() {
     useState(false);
 
   const [error, setError] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
 
   const [searchValue, setSearchValue] =
     useState("");
@@ -65,7 +66,7 @@ function Dashboard() {
     }
 
     loadRoles();
-  }, []);
+  }, [retryKey]);
 
   useEffect(() => {
     if (!selectedRole) {
@@ -113,6 +114,18 @@ function Dashboard() {
       .includes(searchValue.toLowerCase())
   );
 
+  useEffect(() => {
+    if (
+      searchValue &&
+      filteredRoles.length > 0 &&
+      !filteredRoles.some(
+        (role) => role.id === selectedRole?.id
+      )
+    ) {
+      setSelectedRole(filteredRoles[0]);
+    }
+  }, [searchValue]);
+
   return (
     <div className="app">
       <Header
@@ -132,7 +145,17 @@ function Dashboard() {
           {error && (
             <div className="error-banner">
               <strong>Something went wrong</strong>
+
               <span>{error}</span>
+
+              <button
+                className="retry-button"
+                onClick={() =>
+                  setRetryKey((current) => current + 1)
+                }
+              >
+                Try again
+              </button>
             </div>
           )}
 
@@ -147,17 +170,26 @@ function Dashboard() {
           ) : selectedRole ? (
             <>
               <section className="role-hero">
-                <span className="role-label">
-                  CAREER ROLE
-                </span>
+                <div className="hero-top">
+                  <div>
+                    <span className="role-label">
+                      CAREER ROLE
+                    </span>
 
-                <h2>{selectedRole.name}</h2>
+                    <h2>{selectedRole.name}</h2>
 
-                <p>{selectedRole.description}</p>
+                    <p>{selectedRole.description}</p>
+                  </div>
+
+                  <div className="role-node">
+                    <span className="node-dot" />
+                    <span>Graph Node</span>
+                  </div>
+                </div>
 
                 <div className="graph-indicator">
                   <span className="indicator-dot" />
-                  Powered by connected graph data
+                  Connected graph data
                 </div>
               </section>
 
@@ -172,6 +204,54 @@ function Dashboard() {
                 </div>
               ) : (
                 <>
+                  <section className="graph-summary">
+                    <div className="summary-item">
+                      <span className="summary-value">
+                        {skills.length}
+                      </span>
+
+                      <span className="summary-label">
+                        Required skills
+                      </span>
+                    </div>
+
+                    <div className="summary-divider" />
+
+                    <div className="summary-item">
+                      <span className="summary-value">
+                        {learningPath.length}
+                      </span>
+
+                      <span className="summary-label">
+                        Prerequisite nodes
+                      </span>
+                    </div>
+
+                    <div className="summary-divider" />
+
+                    <div className="summary-item">
+                      <span className="summary-value">
+                        {projects.length}
+                      </span>
+
+                      <span className="summary-label">
+                        Connected projects
+                      </span>
+                    </div>
+
+                    <div className="summary-divider" />
+
+                    <div className="summary-item">
+                      <span className="summary-value">
+                        {resources.length}
+                      </span>
+
+                      <span className="summary-label">
+                        Learning resources
+                      </span>
+                    </div>
+                  </section>
+
                   <SkillsSection skills={skills} />
 
                   <LearningPath

@@ -1,4 +1,7 @@
-import { FolderKanban } from "lucide-react";
+import {
+  FolderKanban,
+  ArrowUpRight
+} from "lucide-react";
 
 function ProjectsSection({ projects }) {
   return (
@@ -11,10 +14,14 @@ function ProjectsSection({ projects }) {
           </div>
 
           <p>
-            Projects connected to the skills required for
-            this role.
+            Projects connected to the skills required
+            for this role.
           </p>
         </div>
+
+        <span className="path-label">
+          {projects.length} projects
+        </span>
       </div>
 
       {projects.length === 0 ? (
@@ -37,6 +44,12 @@ function ProjectsSection({ projects }) {
               <h4>{project.name}</h4>
 
               <p>{project.description}</p>
+
+              <div className="project-footer">
+                <span>Graph-connected project</span>
+
+                <ArrowUpRight size={15} />
+              </div>
             </article>
           ))}
         </div>

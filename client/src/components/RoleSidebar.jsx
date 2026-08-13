@@ -1,4 +1,4 @@
-import { Briefcase } from "lucide-react";
+import { Briefcase, ChevronRight } from "lucide-react";
 
 function RoleSidebar({
   roles,
@@ -13,13 +13,19 @@ function RoleSidebar({
         <span>Career Roles</span>
       </div>
 
+      <p className="sidebar-description">
+        Select a role to explore its connected skills,
+        projects and resources.
+      </p>
+
       {loading ? (
         <div className="sidebar-loading">
+          <div className="mini-spinner" />
           Loading roles...
         </div>
       ) : roles.length === 0 ? (
         <div className="empty-small">
-          No roles available.
+          No matching career roles found.
         </div>
       ) : (
         <div className="role-list">
@@ -32,10 +38,14 @@ function RoleSidebar({
                   : "role-button"
               }
               onClick={() => onSelectRole(role)}
+              aria-pressed={selectedRole?.id === role.id}
             >
               <span>{role.name}</span>
 
-              <span className="role-arrow">→</span>
+              <ChevronRight
+                size={16}
+                className="role-arrow"
+              />
             </button>
           ))}
         </div>

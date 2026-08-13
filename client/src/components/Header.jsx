@@ -10,7 +10,7 @@ function Header({ searchValue, onSearchChange }) {
 
         <div>
           <h1>SkillGraph</h1>
-          <p>Career Skill Explorer</p>
+          <p>Explore career paths through connected skills</p>
         </div>
       </div>
 
@@ -18,12 +18,13 @@ function Header({ searchValue, onSearchChange }) {
         <Search size={18} />
 
         <input
-          type="text"
-          placeholder="Search skills..."
+          type="search"
+          placeholder="Search career roles..."
           value={searchValue}
           onChange={(event) =>
             onSearchChange(event.target.value)
           }
+          aria-label="Search career roles"
         />
       </div>
     </header>
