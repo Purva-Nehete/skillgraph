@@ -1,0 +1,198 @@
+import {
+  useEffect,
+  useState
+} from "react";
+
+import {
+  getRoles,
+  getRoleSkills,
+  getLearningPath,
+  getProjects,
+  getResources
+} from "../services/api";
+
+import Header from "../components/Header";
+import RoleSidebar from "../components/RoleSidebar";
+import SkillsSection from "../components/SkillsSection";
+import LearningPath from "../components/LearningPath";
+import ProjectsSection from "../components/ProjectsSection";
+import ResourcesSection from "../components/ResourcesSection";
+
+function Dashboard() {
+  const [roles, setRoles] = useState([]);
+  const [selectedRole, setSelectedRole] =
+    useState(null);
+
+  const [skills, setSkills] = useState([]);
+  const [learningPath, setLearningPath] =
+    useState([]);
+  const [projects, setProjects] = useState([]);
+  const [resources, setResources] = useState([]);
+
+  const [loadingRoles, setLoadingRoles] =
+    useState(true);
+
+  const [loadingDetails, setLoadingDetails] =
+    useState(false);
+
+  const [error, setError] = useState("");
+
+  const [searchValue, setSearchValue] =
+    useState("");
+
+  useEffect(() => {
+    async function loadRoles() {
+      try {
+        setLoadingRoles(true);
+        setError("");
+
+        const response = await getRoles();
+
+        setRoles(response.data);
+
+        if (response.data.length > 0) {
+          setSelectedRole(response.data[0]);
+        }
+      } catch (error) {
+        console.error(error);
+
+        setError(
+          "Unable to connect to the SkillGraph API."
+        );
+      } finally {
+        setLoadingRoles(false);
+      }
+    }
+
+    loadRoles();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedRole) {
+      return;
+    }
+
+    async function loadRoleDetails() {
+      try {
+        setLoadingDetails(true);
+        setError("");
+
+        const [
+          skillsResponse,
+          pathResponse,
+          projectsResponse,
+          resourcesResponse
+        ] = await Promise.all([
+          getRoleSkills(selectedRole.id),
+          getLearningPath(selectedRole.id),
+          getProjects(selectedRole.id),
+          getResources(selectedRole.id)
+        ]);
+
+        setSkills(skillsResponse.data);
+        setLearningPath(pathResponse.data);
+        setProjects(projectsResponse.data);
+        setResources(resourcesResponse.data);
+      } catch (error) {
+        console.error(error);
+
+        setError(
+          "Unable to load the connected graph data."
+        );
+      } finally {
+        setLoadingDetails(false);
+      }
+    }
+
+    loadRoleDetails();
+  }, [selectedRole]);
+
+  const filteredRoles = roles.filter((role) =>
+    role.name
+      .toLowerCase()
+      .includes(searchValue.toLowerCase())
+  );
+
+  return (
+    <div className="app">
+      <Header
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
+      />
+
+      <div className="app-layout">
+        <RoleSidebar
+          roles={filteredRoles}
+          selectedRole={selectedRole}
+          onSelectRole={setSelectedRole}
+          loading={loadingRoles}
+        />
+
+        <main className="main-content">
+          {error && (
+            <div className="error-banner">
+              <strong>Something went wrong</strong>
+              <span>{error}</span>
+            </div>
+          )}
+
+          {!selectedRole && !loadingRoles ? (
+            <div className="empty-main">
+              <h2>No career role selected</h2>
+              <p>
+                Select a career role from the sidebar
+                to explore its connected skills.
+              </p>
+            </div>
+          ) : selectedRole ? (
+            <>
+              <section className="role-hero">
+                <span className="role-label">
+                  CAREER ROLE
+                </span>
+
+                <h2>{selectedRole.name}</h2>
+
+                <p>{selectedRole.description}</p>
+
+                <div className="graph-indicator">
+                  <span className="indicator-dot" />
+                  Powered by connected graph data
+                </div>
+              </section>
+
+              {loadingDetails ? (
+                <div className="details-loading">
+                  <div className="loading-spinner" />
+                  <h3>Exploring the graph...</h3>
+                  <p>
+                    Finding connected skills, projects
+                    and resources.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <SkillsSection skills={skills} />
+
+                  <LearningPath
+                    learningPath={learningPath}
+                  />
+
+                  <ProjectsSection
+                    projects={projects}
+                  />
+
+                  <ResourcesSection
+                    resources={resources}
+                  />
+                </>
+              )}
+            </>
+          ) : null}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default Dashboard;
