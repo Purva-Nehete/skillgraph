@@ -5,27 +5,60 @@ const cors = require("cors");
 
 const roleRoutes = require("./routes/roleRoutes");
 const {
+  driver,
   verifyDatabaseConnection
 } = require("./config/database");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174"
+];
+
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true
+  })
+);
 app.use(express.json());
 app.use("/api/roles", roleRoutes);
 
-async function startServer() {
+app.get("/api/health", async (req, res) => {
   try {
-    await verifyDatabaseConnection();
+    await driver.verifyConnectivity();
 
-    app.listen(PORT, () => {
-      console.log(`SkillGraph API running on http://localhost:${PORT}`);
+    res.status(200).json({
+      status: "ok",
+      database: "connected",
+      message: "SkillGraph API is healthy"
     });
   } catch (error) {
-    console.error("Failed to start SkillGraph API:", error.message);
-    process.exit(1);
-  }
-}
+    console.error("Health check failed:", error.message);
 
-startServer();
+    res.status(503).json({
+      status: "error",
+      database: "unavailable",
+      message: "Database connection unavailable"
+    });
+  }
+});
+
+app.listen(PORT, "0.0.0.0", async () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+
+  try {
+    await verifyDatabaseConnection();
+  } catch (error) {
+    console.error(
+      "⚠️ Database connection failed:",
+      error.message
+    );
+  }
+});
